@@ -2,6 +2,7 @@ import express from "express";
 import { ProductService } from '../services/products.service.js';
 import { CartService } from '../services/carts.service.js';
 import { ProductModel  } from "../DAO/models/products.model.js";
+import { UserModel } from "../DAO/models/users.model.js";
 const productService = new ProductService();
 const cartService  = new CartService();
 
@@ -38,33 +39,20 @@ viewsRouter.get("/", async (req, res) => {
     try {
       const { limit = 10, page = 1, sort, query } = req.query;
       const queryParams = { limit, page, sort, query };
-  
+      const user = await UserModel.findOne({ email: req.session.email });
+      const userData = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      }
       const {
-        payload: products,
-        totalPages,
-        payload,
-        prevPage,
-        nextPage,
-        page: currentPage,
-        hasPrevPage,
-        hasNextPage,
-        prevLink,
-        nextLink,
       } = await productService.get(queryParams);
       let productsSimplified = products.map((item) => {
-        return {
-          _id: item._id.toString(),
-          title: item.title,
-          description: item.description,
-          price: item.price,
-          thumbnail: item.thumbnail,
-          code: item.code,
-          stock: item.stock,
-          category: item.category,
-        };
       });
   
       return res.render("products", {
+        user: userData,
         products: productsSimplified,
         totalPages,
         prevPage,
@@ -83,6 +71,11 @@ viewsRouter.get("/", async (req, res) => {
     }
   });
   
+
+
+
+
+
   viewsRouter.get("/products/:pid", async (req, res, next) => {
     try {
       const { pid } = req.params;

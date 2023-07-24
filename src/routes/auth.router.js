@@ -28,7 +28,7 @@ authRouter.get("/login", (req, res) => {
     return res.render("login", {});
 });
 
-authRouter.get("/products", (req, res) => {
+authRouter.get("/products", async (req, res) => {
     try {
         const user = UserModel.findOne({email: req.session.email});
         if(user) {
@@ -49,7 +49,7 @@ authRouter.get("/products", (req, res) => {
     }
 });
 
-authRouter.post(("/login", async (req, res) => {
+authRouter.post("/login", async (req, res) => {
     try {
         const {email, password} = req.body;
         if(!email || !password) {
@@ -59,14 +59,14 @@ authRouter.post(("/login", async (req, res) => {
         if(isAdmin) {
             req.session.email = email;
             req.session.isAdmin = true;
-            return res.redirect("/auth/products");
+            return res.redirect("/products");
         }
         const foundUser = await UserModel.findOne({email: email});
         if(foundUser && foundUser.password === password){
             req.session.email = foundUser.email;
             req.session.isAdmin = foundUser.isAdmin;
             return req.session.save(() => {
-                return res.redirect("/auth/products");
+                return res.redirect("/products");
             });
         }else {
             return res.status(401).render("error", {error: "Invalid Email or Password" });
@@ -75,7 +75,7 @@ authRouter.post(("/login", async (req, res) => {
         console.log(error);
         res.status(500).json({status: "error", message: "Internal Error"});
     }
-}));
+});
 
 authRouter.get("/register", (req, res) => {
     return res.render("register", {});
